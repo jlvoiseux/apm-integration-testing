@@ -266,6 +266,7 @@ class OpbeansJava(OpbeansService):
     DEFAULT_OPBEANS_VERSION = 'latest'
     DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
     DEFAULT_SAMPLE_RATE = 10
+    DEFAULT_APM_AGENT_TYPE = "elasticapm"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -279,6 +280,11 @@ class OpbeansJava(OpbeansService):
             '--' + cls.name() + '-version',
             default=cls.DEFAULT_OPBEANS_VERSION,
             help=cls.name() + " version for the docker image of opbeans java"
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-agent-type',
+            default=cls.DEFAULT_APM_AGENT_TYPE,
+            help=cls.name() + " specify the use of either the Elastic Agent or the OpenTelemetry agent"
         )
         parser.add_argument(
             '--' + cls.name() + '-no-infer-spans',
@@ -341,6 +347,11 @@ class OpbeansJava(OpbeansService):
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
                 "ELASTIC_APM_TRANSACTION_SAMPLE_RATE={:.2f}".format(self.sample_rate),
+                "OTEL_RESOURCE_ATTRIBUTES=service.name={},deployement.environment={}".format(self.service_name, self.service_environment),
+                "OTEL_TRACES_EXPORTER=otlp",
+                "OTEL_METRICS_EXPORTER=otlp",
+                "OTEL_EXPORTER_OTLP_ENDPOINT=grpc",
+                "APM_AGENT_TYPE={}".format(self.APM_AGENT_TYPE)
             ],
             depends_on=depends_on,
             image=None,
